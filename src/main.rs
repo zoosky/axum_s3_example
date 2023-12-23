@@ -1,25 +1,26 @@
 mod uploader;
 
-use std::str::FromStr;
-use axum::{Extension, Json};
 use axum::extract::{DefaultBodyLimit, Multipart, Path};
-use axum::http::{HeaderMap, HeaderValue, StatusCode};
 use axum::http::header::CACHE_CONTROL;
+use axum::http::{HeaderMap, HeaderValue, StatusCode};
 use axum::response::IntoResponse;
+use axum::{Extension, Json};
 use uploader::UploadService;
 
 #[derive(Debug, serde::Serialize)]
 struct UploadResponse {
-    pub url: String
+    pub url: String,
 }
 
 async fn upload_file(
     Extension(upload_service): Extension<UploadService>,
-    mut multipart: Multipart
+    mut multipart: Multipart,
 ) -> Result<impl IntoResponse, StatusCode> {
-    while let Some(field) = multipart.next_field().await.map_err(|_|
-        StatusCode::INTERNAL_SERVER_ERROR
-    )? {
+    while let Some(field) = multipart
+        .next_field()
+        .await
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
+    {
         if let Some("upload") = field.name() {
             let url = upload_service.upload(field).await?;
             return Ok(Json(UploadResponse { url }));
@@ -30,11 +31,14 @@ async fn upload_file(
 
 async fn download_file(
     Path(path): Path<String>,
-    Extension(upload_service): Extension<UploadService>
+    Extension(upload_service): Extension<UploadService>,
 ) -> Result<impl IntoResponse, StatusCode> {
     let body = upload_service.download(&path).await?;
     let headers = HeaderMap::from_iter([
-        (CACHE_CONTROL, HeaderValue::from_str("max-age=31536000").unwrap()) // One year
+        (
+            CACHE_CONTROL,
+            HeaderValue::from_str("max-age=31536000").unwrap(),
+        ), // One year
     ]);
     Ok((headers, body))
 }
@@ -49,14 +53,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .layer(Extension(upload_service))
         .layer(DefaultBodyLimit::max(8 * 1024 * 1024));
     let address = std::env::var("HOST").expect("Expected HOST environment variable");
-    let port = std::env::var("PORT").expect("Expected PORT environment variable")
-        .parse::<u16>().expect("PORT environment variable must be an integer");
-    log::info!("Listening on http://{}:{}/", address, port);
-    axum::Server::bind(
-        &std::net::SocketAddr::new(
-            std::net::IpAddr::from_str(&address).unwrap(),
-            port
-        )
-    ).serve(router.into_make_service()).await?;
+    let port = std::env::var("PORT")
+        .expect("Expected PORT environment variable")
+        .parse::<u16>()
+        .expect("PORT environment variable must be an integer");
+    let addr_port = format!("{addr}:{prt}", addr = address, prt = port);
+    log::info!("Listening on http://{}/", addr_port);
+    let listener = tokio::net::TcpListener::bind(addr_port).await.unwrap();
+
+    axum::serve(listener, router.into_make_service()).await?;
     Ok(())
 }

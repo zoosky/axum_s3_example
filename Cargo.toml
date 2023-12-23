@@ -9,10 +9,10 @@ edition = "2021"
 log = "0.4.20"
 env_logger = "0.10.0"
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
-axum = { version = "0.6.20", features = ["multipart"] }
+axum = { version = "0.7.2", features = ["multipart"] }
 serde = "1.0.188"
 uuid = { version = "1.4.1", features = ["v4"] }
-rust-s3 = "0.34.0-rc1"
+rust-s3 = "0.34.0-rc4"
 futures = "0.3.28"
 async-compat = "0.2.2"
 async-hash = "0.5.1"
