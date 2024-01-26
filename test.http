@@ -1,0 +1,27 @@
+POST /upload HTTP/1.1
+Host: http://127.0.0.1:3000
+Content-Type: multipart/form-data; boundary=---------------------------974767299852498929531610575
+Content-Length: 244
+
+-----------------------------974767299852498929531610575
+Content-Disposition: form-data; name="file"; filename="axum.png"
+Content-Type: image/png
+
+<binary data>
+-----------------------------974767299852498929531610575--
+
+{
+    "file": "axum.png"
+}
+
+###
+
+POST /upload HTTP/1.1
+Host: http://127.0.0.1:3000
+Content-Type: application/json
+Content-Length: <length>
+
+{
+    "fileName": "axum.png",
+    "fileUrl": "http://location/to/axum.png"
+}

@@ -19,3 +19,8 @@ Configured using following environment variables:
 - `UPLOAD_BUCKET_ENDPOINT`
 
 More info: https://eternal-search.com/axum-s3
+
+
+Run using Deno
+
+    deno run --allow-read upload.ts
